@@ -9,7 +9,7 @@ _kernver=${pkgver%_rc*}
 _mainver=${_kernver%.*}
 _patchlevel=${_kernver/$_mainver./}
 _basever=${_mainver}.$((_patchlevel-1))
-pkgrel=3
+pkgrel=4
 
 arch="all"
 pkgdesc="Linux for pmOS supported chipsets (mainline, more bleeding-edge than stable)"
@@ -175,7 +175,7 @@ dev() {
 sha512sums="a557c2f0303ae618910b7106ff63d9978afddf470f03cb72aa748213e099a0ecd5f3119aea6cbd7b61df30ca6ef3ec57044d524b7babbaabddf8b08b8bafa7d2  linux-4.13.tar.xz
 0c7e36ad839610e3b1dae7cc13624c015df63d46253a84e2d26dfd3a3c6abd51db5fa95bc6896a8153d6c08fd987d9acf7da42494f869fa34833ae84c762d5ba  linux-v4.13-v4.14-rc1.patch
 03107cf37d7638fd9907fbe84bc72edcaa95a6c5ca8b4c20a3838c6ea6f28222aca1a94dfeeb7791f2f0240735619d9b4363ec418af30977a1362527942d001e  linux-v4.14-rc1-v4.14-rc7.patch
-a75225750193cf31c8b6c15e7748699f842ecadc9ed573f0b10f42bb5343b4e092bcb65b359d170a42a102a4ddfe09d63c1d67550f4b99c29295fa22e1d7b995  config-postmarketos-mainline.armhf
+4ef62aa9875156abda189e5441780c11302234049bf5cc1afb2e3d5b2c225c528b46138b65ad166c8f96a54f6df33797a2649ff1c21fb4354c5b6b154a3d69e7  config-postmarketos-mainline.armhf
 6310035a0a4c028cc98cab92919cca54be9b79ee9fe63211e7a05876d7befdbd8506a2f80548e228e014e99b0f91f63946352789d8d2f2134c66914163f66ab3  config-postmarketos-mainline.aarch64
 3d42c60061d12a436d19ffdf00623ea71ca31f16f690ae82ebf872d35177c283b4038cd5e270f4e610d6cf6861cef73ac63c995f1f4cfe9d6f2a4a8648ba28fb  config-postmarketos-mainline.x86_64
 e34315167868c2539b2cb548b4305a5e16527b8d5b39843945bf3b0c2a67d70f7d9c93443bac2d28a744aa85012c241c68c5a4f09f0ad3e35ba8945bdaed2e2d  001-sony-amami-dts.patch
