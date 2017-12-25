@@ -1,0 +1,119 @@
+diff --git a/arch/arm/boot/dts/qcom-msm8974-lge-nexus5-hammerhead.dts b/arch/arm/boot/dts/qcom-msm8974-lge-nexus5-hammerhead.dts
+index 4dc0b347b1ee..77d429b8cf8a 100644
+--- a/arch/arm/boot/dts/qcom-msm8974-lge-nexus5-hammerhead.dts
++++ b/arch/arm/boot/dts/qcom-msm8974-lge-nexus5-hammerhead.dts
+@@ -254,6 +254,41 @@
+ 		pinctrl-0 = <&sdhc1_pin_a>;
+ 	};
+ 
++	usb@f9a55000 {
++		status = "ok";
++
++		phys = <&usb_hs1_phy>;
++		phy-select = <&tcsr 0xb000 0>;
++		extcon = <&smbb>, <&usb_id>;
++		vbus-supply = <&chg_otg>;
++
++		hnp-disable;
++		srp-disable;
++		adp-disable;
++
++		ulpi {
++			phy@a {
++				status = "ok";
++
++				v1p8-supply = <&pm8941_l6>;
++				v3p3-supply = <&pm8941_l24>;
++
++				extcon = <&smbb>;
++				qcom,init-seq = /bits/ 8 <0x1 0x64>;
++			};
++		};
++	};
++
++	i2c@f9967000 {
++		status = "ok";
++
++		led@38 {
++			compatible = "ti,lm3630a";
++			reg = <0x38>;
++			status = "ok";
++		};
++	};
++
+ 	gpio-keys {
+ 		compatible = "gpio-keys";
+ 		input-name = "gpio-keys";
+diff --git a/drivers/mmc/host/sdhci-msm.c b/drivers/mmc/host/sdhci-msm.c
+index c283291db705..a7c2e75ae32f 100644
+--- a/drivers/mmc/host/sdhci-msm.c
++++ b/drivers/mmc/host/sdhci-msm.c
+@@ -1336,7 +1336,8 @@ static const struct sdhci_pltfm_data sdhci_msm_pdata = {
+ 		  SDHCI_QUIRK_NO_CARD_NO_RESET |
+ 		  SDHCI_QUIRK_SINGLE_POWER_WRITE |
+ 		  SDHCI_QUIRK_CAP_CLOCK_BASE_BROKEN,
+-	.quirks2 = SDHCI_QUIRK2_PRESET_VALUE_BROKEN,
++	.quirks2 = SDHCI_QUIRK2_PRESET_VALUE_BROKEN |
++		  SDHCI_QUIRK2_BROKEN_HS200,
+ 	.ops = &sdhci_msm_ops,
+ };
+ 
+diff --git a/drivers/video/backlight/lm3630a_bl.c b/drivers/video/backlight/lm3630a_bl.c
+index 2030a6b77a09..4a9c1fc63533 100644
+--- a/drivers/video/backlight/lm3630a_bl.c
++++ b/drivers/video/backlight/lm3630a_bl.c
+@@ -327,6 +327,26 @@ static const struct backlight_ops lm3630a_bank_b_ops = {
+ 	.get_brightness = lm3630a_bank_b_get_brightness,
+ };
+ 
++/*
++static struct lm3630a_platform_data *lm3630a_of_parse(struct device *dev,
++						int *id)
++{
++	struct lm3630a_platform_data *pdata;
++	struct device_node *node = dev->of_node;
++	int ret;
++	u32 reg;
++	u32 val;
++
++	pdata = devm_kzalloc(dev,
++			sizeof(struct lm3630a_platform_data),
++			GFP_KERNEL);
++	if (!pdata)
++		return NULL;
++
++	return pdata;
++}
++*/
++
+ static int lm3630a_backlight_register(struct lm3630a_chip *pchip)
+ {
+ 	struct backlight_properties props;
+@@ -390,6 +410,9 @@ static int lm3630a_probe(struct i2c_client *client,
+ 	}
+ 
+ 	i2c_set_clientdata(client, pchip);
++	if (!pdata) {
++		printk(KERN_DEBUG "BSHAH: HELLO");
++	}
+ 	if (pdata == NULL) {
+ 		pdata = devm_kzalloc(pchip->dev,
+ 				     sizeof(struct lm3630a_platform_data),
+@@ -472,9 +495,17 @@ static const struct i2c_device_id lm3630a_id[] = {
+ 
+ MODULE_DEVICE_TABLE(i2c, lm3630a_id);
+ 
++static const struct of_device_id lm3630a_dt_ids[] = {
++	{ .compatible = "ti,lm3630a", },
++	{ }
++};
++
++MODULE_DEVICE_TABLE(of, lm3630a_dt_ids);
++
+ static struct i2c_driver lm3630a_i2c_driver = {
+ 	.driver = {
+ 		   .name = LM3630A_NAME,
++		   .of_match_table = of_match_ptr(lm3630a_dt_ids),
+ 		   },
+ 	.probe = lm3630a_probe,
+ 	.remove = lm3630a_remove,
