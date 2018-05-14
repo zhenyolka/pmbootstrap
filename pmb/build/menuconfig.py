@@ -79,12 +79,13 @@ def menuconfig(args, pkgname):
     pmb.chroot.user(args, ["abuild", "unpack"], "native", "/home/pmos/build")
     logging.info("(native) apply patches")
     pmb.chroot.user(args, ["abuild", "prepare"], "native",
-                    "/home/pmos/build", log=False, env={"CARCH": arch})
+                    "/home/pmos/build", output="interactive",
+                    env={"CARCH": arch})
 
     # Run abuild menuconfig
     logging.info("(native) run menuconfig")
     pmb.chroot.user(args, ["abuild", "-d", "menuconfig"], "native",
-                    "/home/pmos/build", log=False, env={"CARCH": arch})
+                    "/home/pmos/build", output="tui", env={"CARCH": arch})
 
     # Update config + checksums
     config = "config-" + apkbuild["_flavor"] + "." + arch

@@ -35,8 +35,9 @@ def bootimg(args, path):
     # Copy the boot.img into the chroot temporary folder
     pmb.helpers.run.root(args, ["cp", path, bootimg_path])
 
-    file_output = pmb.chroot.user(args, ["file", "-b", "boot.img"], working_dir=temp_path,
-                                  return_stdout=True).rstrip()
+    file_output = pmb.chroot.user(args, ["file", "-b", "boot.img"],
+                                  working_dir=temp_path,
+                                  output_return=True).rstrip()
     if "android bootimg" not in file_output.lower():
         if "linux kernel" in file_output.lower():
             raise RuntimeError("File is a Kernel image, you might need the 'heimdall-isorec'"
