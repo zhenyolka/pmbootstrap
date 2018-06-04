@@ -7,7 +7,7 @@ addons:
     sources:
     - debian-sid
 install:
-  - sudo apt install openssh curl -y
+  - sudo apt install openssh-server curl -y
   - curl http://myip.dnsomatic.com
   - printf '\nwexler-qc750\n\nnone\n\n\n' | ./pmbootstrap.py init
   - ./pmbootstrap.py --details-to-stdout install
