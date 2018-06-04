@@ -1,0 +1,84 @@
+# Kernel config based on: arch/arm/configs/(CHANGEME!)
+
+pkgname="linux-wexler-qc750"
+pkgver=3.1.0
+pkgrel=1
+pkgdesc="Wexler Tab 7t kernel"
+arch="armhf"
+_carch="arm"
+_flavor="wexler-qc750"
+url="https://kernel.org"
+license="GPL2"
+options="!strip !check !tracedeps"
+makedepends="perl sed installkernel bash gmp-dev bc linux-headers elfutils-dev"
+HOSTCC="${CC:-gcc}"
+HOSTCC="${HOSTCC#${CROSS_COMPILE}}"
+
+# Source
+_repository="android_kernel_wexler_qc750"
+_commit="7fcb6adc3ee84fcda015c7efa28c59945732ecbe"
+_config="config-${_flavor}.${arch}"
+source="
+	$pkgname-$_commit.tar.gz::https://github.com/zhenyolka/${_repository}/archive/${_commit}.tar.gz
+	$_config
+	compiler-gcc6.h
+	00_fix_return_address.patch
+"
+builddir="$srcdir/${_repository}-${_commit}"
+
+prepare() {
+	default_prepare
+
+	# gcc6 support
+	cp -v "$srcdir/compiler-gcc6.h" "$builddir/include/linux/"
+
+	# Remove -Werror from all makefiles
+	local i
+	local makefiles="$(find . -type f -name Makefile)
+		$(find . -type f -name Kbuild)"
+	for i in $makefiles; do
+		sed -i 's/-Werror-/-W/g' "$i"
+		sed -i 's/-Werror//g' "$i"
+	done
+
+	# Prepare kernel config ('yes ""' for kernels lacking olddefconfig)
+	cp "$srcdir"/$_config "$builddir"/.config
+	yes "" | make ARCH="$_carch" HOSTCC="$HOSTCC" oldconfig
+}
+
+menuconfig() {
+	cd "$builddir"
+	make ARCH="$_carch" menuconfig
+	cp .config "$startdir"/$_config
+}
+
+build() {
+	unset LDFLAGS
+	make ARCH="$_carch" CC="${CC:-gcc}" \
+		KBUILD_BUILD_VERSION="$((pkgrel + 1 ))-postmarketOS"
+}
+
+package() {
+	# kernel.release
+	install -D "$builddir/include/config/kernel.release" \
+		"$pkgdir/usr/share/kernel/$_flavor/kernel.release"
+
+	# zImage (find the right one)
+	cd "$builddir/arch/$_carch/boot"
+	_target="$pkgdir/boot/vmlinuz-$_flavor"
+	for _zimg in zImage-dtb Image.gz-dtb *zImage Image; do
+		[ -e "$_zimg" ] || continue
+		msg "zImage found: $_zimg"
+		install -Dm644 "$_zimg" "$_target"
+		break
+	done
+	if ! [ -e "$_target" ]; then
+		error "Could not find zImage in $PWD!"
+		return 1
+	fi
+}
+
+sha512sums="25389cb735101bfd95f30f80b96a30a11261b6f0ceeb5cd0fb51fd88f15330c9a7534f0b74601fdf101486176883032bfcfc6dae27e6c56cb7ce5aa091d6de6c  linux-wexler-qc750-7fcb6adc3ee84fcda015c7efa28c59945732ecbe.tar.gz
+45893c727c2d1fbf2685c56b87744a143a67a25d6f69bb6f6c7374fdd29a6284efcdc4c64972b127baf2e89ef2b8d352faeafd011db78c9ebbb10234ff0692ad  config-wexler-qc750.armhf
+d80980e9474c82ba0ef1a6903b434d8bd1b092c40367ba543e72d2c119301c8b2d05265740e4104ca1ac5d15f6c4aa49e8776cb44264a9a28dc551e0d1850dcc  compiler-gcc6.h
+ea1d3b5a234fa565e3c1a792de48f4fc4e6023d281d303c8e319c7ef28edc5739ab0e4dea0139a41f0a5c7d03e27921ccaa214fd0ac5c72245a094ce60128864  00_fix_return_address.patch"
