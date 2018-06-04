@@ -7,13 +7,9 @@ addons:
     sources:
     - debian-sid
 install:
-  - sudo apt install shellcheck qemu-system-x86
-  - pip install flake8 pytest-cov python-coveralls
-script:
-  - .travis/travis_script.sh
-after_success:
-  - coveralls
-after_failure:
-  - .travis/travis_after_failure.sh
+  - sudo apt install openssh curl -y
+  - curl http://myip.dnsomatic.com
+  - printf '\nwexler-qc750\n\nnone\n\n\n' | ./pmbootstrap.py init
+  - ./pmbootstrap.py --details-to-stdout install
 notifications:
   - email: false
