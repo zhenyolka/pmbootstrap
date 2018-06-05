@@ -8,7 +8,7 @@ addons:
     - debian-sid
 install:
   - printf '\nwexler-qc750\n\nnone\n\n\n\n' | ./pmbootstrap.py init
-  - printf 'user\nuser\n\n' | ./pmbootstrap.py --details-to-stdout install
+  - printf 'user\nuser\n\n' | ./pmbootstrap.py --details-to-stdout install --no-fde
   - sudo .travis/upload-build.sh
 notifications:
   - email: false
